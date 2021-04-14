@@ -1,0 +1,76 @@
+# Importing required libraries
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.neural_network import MLPClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.tree import DecisionTreeClassifier
+
+# reading data 
+data = pd.read_csv('/content/train_yaOffsB.csv')
+test_data = pd.read_csv('/content/test_pFkWwen.csv')
+sample_df = pd.read_csv('/content/sample_submission_O1oDc4H.csv')
+
+# First 5 rows of training data.
+data.head()
+
+# Shape of train & test data.
+data.shape,test_data.shape
+
+# information of train data
+print(data.info())
+print('There are missing values in data')
+
+# Description of training data
+data.describe()
+
+# Missing values
+data.isnull().sum()
+
+data['Number_Weeks_Used'] = data.Number_Weeks_Used.ffill()
+data.isnull().sum()
+
+# Split the data
+train,validation = train_test_split(data,test_size = 0.2)
+train.shape,validation.shape
+
+#xtrain,x_train,trainX,train_x
+train_y = train['Crop_Damage']
+train_x = train.drop('Crop_Damage',axis = 1)
+train_x = train_x.drop('ID',axis =1)
+train_x.head()
+
+scaler = StandardScaler()
+train_x['Estimated_Insects_Count'] = scaler.fit_transform(train_x[['Estimated_Insects_Count']])
+train_x['Crop_Type'] = scaler.fit_transform(train_x[['Crop_Type']])
+train_x['Soil_Type'] = scaler.fit_transform(train_x[['Soil_Type']])
+train_x['Pesticide_Use_Category'] = scaler.fit_transform(train_x[['Pesticide_Use_Category']])
+train_x['Number_Doses_Week'] = scaler.fit_transform(train_x[['Number_Doses_Week']])
+train_x['Number_Weeks_Used'] = scaler.fit_transform(train_x[['Number_Weeks_Used']])
+train_x['Number_Weeks_Quit'] = scaler.fit_transform(train_x[['Number_Weeks_Quit']])
+train_x['Season'] = scaler.fit_transform(train_x[['Season']])
+
+train_x
+
+validation = validation.drop('ID',axis = 1)
+validation.head()
+
+validation['Estimated_Insects_Count'] = scaler.fit_transform(validation[['Estimated_Insects_Count']])
+validation['Crop_Type'] = scaler.fit_transform(validation[['Crop_Type']])
+validation['Soil_Type'] = scaler.fit_transform(validation[['Soil_Type']])
+validation['Pesticide_Use_Category'] = scaler.fit_transform(validation[['Pesticide_Use_Category']])
+validation['Number_Doses_Week'] = scaler.fit_transform(validation[['Number_Doses_Week']])
+validation['Number_Weeks_Used'] = scaler.fit_transform(validation[['Number_Weeks_Used']])
+validation['Number_Weeks_Quit'] = scaler.fit_transform(validation[['Number_Weeks_Quit']])
+validation['Season'] = scaler.fit_transform(validation[['Season']])
+#validation['Crop_Damage'] = scaler.fit_transform(validation[['Crop_Damage']])
+
+true_y = validation.Crop_Damage
+validation = validation.drop('Crop_Damage',axis = 1)
+
+clf = MLPClassifier(hidden_layer_sizes=200)
+clf.fit(train_x,train_y)
+
+pred = clf.predict(validation)
+print('accuracy score : {}'.format(accuracy_score(true_y,pred)))
